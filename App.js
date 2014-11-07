@@ -2,17 +2,16 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     _defects:null,
-    _allowedValues:[],
     launch: function(){
         this._getModel().then({
-            success: this._getAllowedPriorityValues,
-            scope:this
-        }).then ({
-            success: this._getAllowedSeverityValues,
+            success: this._getAllowedValues,
             scope:this
         }).then({
-                success:function(result) {
-                    console.log('results', result);
+                success:function(results) {
+                    _.each(results, function(result){
+                         console.log(result);
+                    })
+
                 },
                 failure:function(error){
                     console.log('oh noes')  ;
@@ -25,6 +24,19 @@ Ext.define('CustomApp', {
               type:'Defect'
           })
     } ,
+
+    _getAllowedValues:function(model) {
+
+        var allowedPriorityValues =  this._getAllowedPriorityValues(model);
+        var allowedSeverityValues =  this._getAllowedSeverityValues(model);
+        var allowedValues = [];
+        allowedValues.push(allowedPriorityValues);
+        allowedValues.push(allowedSeverityValues)
+        return  allowedValues;
+
+
+
+    },
 
     _getAllowedPriorityValues:function(model) {
         var that = this;
@@ -48,12 +60,11 @@ Ext.define('CustomApp', {
         return deferred.promise;
 
     } ,
-    _getAllowedSeverityValues:function(priorityValues) {
-        console.log('priorityValues', priorityValues) ;
+    _getAllowedSeverityValues:function(model) {
         var deferred = Ext.create('Deft.Deferred');
         var that = this;
         var allowedSeverityValues = []
-        that._model.getField('Severity').getAllowedValueStore().load({
+        model.getField('Severity').getAllowedValueStore().load({
             callback: function(records,operation,success){
                 Ext.Array.each(records,function(allowedValue){
                     allowedSeverityValues.push(allowedValue.get('StringValue'));
